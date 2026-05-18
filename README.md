@@ -24,7 +24,7 @@ An autonomous AI agent that applies to jobs automatically every 3 hours without 
 
 ## Live Demo
 
-Available on request. Contact me at your@email.com
+Available on request. Contact me at manikantapoola.pm@email.com
 
 ## How To Run Locally
 
