@@ -1,0 +1,13 @@
+flask
+flask-sqlalchemy
+apscheduler
+anthropic
+requests
+beautifulsoup4
+lxml
+playwright
+python-docx
+pdfplumber
+python-dotenv
+flask-cors
+gunicorn
