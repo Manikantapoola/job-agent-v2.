@@ -34,4 +34,4 @@ Available on request. Contact me at manikantapoola.pm@email.com
 4. Run playwright install chromium
 5. Create .env file with your API keys
 6. Run python app.py
-7. Open http://localhost:5000
+7. Open [http://localhost:5000](http://localhost:5000/onboarding)
