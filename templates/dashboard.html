@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Job Agent Dashboard</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: Arial, sans-serif; background: #f8fafc; }
+    .topbar { background: #1e40af; color: white; padding: 16px 28px; display: flex; justify-content: space-between; align-items: center; }
+    .topbar h1 { font-size: 18px; }
+    .topbar p { font-size: 13px; opacity: .7; margin-top: 2px; }
+    .run-btn { background: white; color: #1e40af; border: none; padding: 9px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 14px; }
+    .main { padding: 28px; }
+    .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px; }
+    .stat { background: white; border-radius: 10px; border: 1px solid #e5e7eb; padding: 18px; }
+    .stat .label { font-size: 12px; color: #6b7280; font-weight: 600; text-transform: uppercase; }
+    .stat .value { font-size: 30px; font-weight: 700; color: #111; margin-top: 4px; }
+    .card { background: white; border-radius: 10px; border: 1px solid #e5e7eb; overflow: hidden; }
+    .card-head { padding: 16px 20px; border-bottom: 1px solid #e5e7eb; font-weight: 700; font-size: 15px; }
+    table { width: 100%; border-collapse: collapse; }
+    th { background: #f8fafc; padding: 11px 16px; text-align: left; font-size: 12px; font-weight: 700; color: #6b7280; text-transform: uppercase; border-bottom: 1px solid #e5e7eb; }
+    td { padding: 13px 16px; font-size: 13px; border-bottom: 1px solid #f3f4f6; }
+    tr:last-child td { border-bottom: none; }
+    tr.clickable:hover td { background: #f0f7ff; cursor: pointer; }
+    .badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+    .applied { background: #dcfce7; color: #16a34a; }
+    .failed { background: #fee2e2; color: #dc2626; }
+    .pending { background: #fef3c7; color: #b45309; }
+    .empty { text-align: center; padding: 40px; color: #9ca3af; }
+    .toast { position: fixed; bottom: 20px; right: 20px; background: #111; color: white; padding: 12px 18px; border-radius: 8px; display: none; font-size: 14px; z-index: 9999; }
+    .toast.show { display: block; }
+    .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000; justify-content: center; align-items: flex-start; padding: 20px; overflow-y: auto; }
+    .overlay.show { display: flex; }
+    .popup { background: white; border-radius: 14px; width: 100%; max-width: 860px; margin: auto; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,.3); }
+    .popup-header { background: #1e40af; color: white; padding: 20px 24px; display: flex; justify-content: space-between; align-items: flex-start; }
+    .popup-header h2 { font-size: 18px; margin-bottom: 4px; }
+    .popup-header p { font-size: 13px; opacity: .8; }
+    .close-btn { background: rgba(255,255,255,0.2); border: none; color: white; width: 32px; height: 32px; border-radius: 50%; font-size: 18px; cursor: pointer; flex-shrink: 0; margin-left: 12px; }
+    .popup-body { padding: 24px; }
+    .tabs { display: flex; gap: 4px; margin-bottom: 20px; border-bottom: 2px solid #e5e7eb; }
+    .tab { padding: 8px 18px; border: none; background: none; font-size: 13px; font-weight: 600; color: #6b7280; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -2px; font-family: Arial, sans-serif; }
+    .tab.active { color: #1e40af; border-bottom-color: #1e40af; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+    .info-box { background: #f8fafc; border-radius: 8px; padding: 14px; border: 1px solid #e5e7eb; }
+    .info-box .info-label { font-size: 11px; font-weight: 700; color: #9ca3af; text-transform: uppercase; margin-bottom: 4px; }
+    .info-box .info-value { font-size: 14px; color: #111; font-weight: 600; }
+    .hr-box { background: #eff6ff; border-radius: 10px; padding: 16px; border: 1px solid #bfdbfe; margin-bottom: 20px; }
+    .hr-box h3 { font-size: 13px; font-weight: 700; color: #1e40af; margin-bottom: 10px; text-transform: uppercase; }
+    .hr-row { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; font-size: 13px; }
+    .hr-row a { color: #1e40af; }
+    .no-hr { color: #9ca3af; font-size: 13px; font-style: italic; }
+    .followup-box { background: #f0fdf4; border-radius: 10px; padding: 16px; border: 1px solid #bbf7d0; margin-bottom: 20px; }
+    .followup-box h3 { font-size: 13px; font-weight: 700; color: #16a34a; margin-bottom: 10px; text-transform: uppercase; }
+    .followup-text { font-size: 13px; color: #374151; line-height: 1.7; white-space: pre-wrap; }
+    .description-box { background: #f9fafb; border-radius: 8px; padding: 16px; border: 1px solid #e5e7eb; font-size: 13px; color: #374151; line-height: 1.7; max-height: 300px; overflow-y: auto; white-space: pre-wrap; }
+    .resume-preview { background: white; border: 1px solid #e5e7eb; border-radius: 8px; padding: 40px; min-height: 400px; font-family: 'Times New Roman', serif; box-shadow: 0 2px 8px rgba(0,0,0,.08); }
+    .resume-name { font-size: 22px; font-weight: bold; text-align: center; margin-bottom: 4px; color: #111; }
+    .resume-contact { font-size: 11px; text-align: center; color: #555; margin-bottom: 16px; }
+    .resume-section-title { font-size: 11px; font-weight: bold; color: #1a56db; text-transform: uppercase; letter-spacing: .08em; border-bottom: 1px solid #1a56db; padding-bottom: 2px; margin: 14px 0 6px; }
+    .resume-line { font-size: 12px; color: #222; margin-bottom: 3px; line-height: 1.5; }
+    .resume-line.bold { font-weight: bold; }
+    .resume-loading { text-align: center; color: #9ca3af; padding: 40px; font-size: 14px; }
+    .download-btn { display: inline-block; background: #1e40af; color: white; padding: 10px 22px; border-radius: 8px; font-size: 14px; font-weight: 600; text-decoration: none; margin-top: 16px; }
+    .download-btn:hover { background: #1d4ed8; }
+    .score-row { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+    .score-number { font-size: 28px; font-weight: 700; }
+    .score-bar-bg { flex: 1; height: 8px; background: #e5e7eb; border-radius: 4px; overflow: hidden; }
+    .score-bar-fill { height: 100%; border-radius: 4px; }
+    .score-reason { font-size: 13px; color: #6b7280; font-style: italic; margin-bottom: 16px; }
+  </style>
+</head>
+<body>
+
+<div class="topbar">
+  <div>
+    <h1>🤖 Job Agent Dashboard</h1>
+    <p>Hello {{ user.full_name }} · Last run: {{ user.last_run_at.strftime('%b %d %H:%M') if user.last_run_at else 'Never' }}</p>
+  </div>
+  <button class="run-btn" onclick="runNow(this)">▶ Run Now</button>
+</div>
+
+<div class="main">
+  <div class="stats">
+    <div class="stat"><div class="label">Total Applied</div><div class="value">{{ stats.total_applied }}</div></div>
+    <div class="stat"><div class="label">Avg Match Score</div><div class="value">{{ stats.avg_match }}%</div></div>
+    <div class="stat"><div class="label">Pending Response</div><div class="value">{{ stats.pending }}</div></div>
+  </div>
+
+  <div class="card">
+    <div class="card-head">All Applications — Click any row to see full details</div>
+    <table>
+      <thead>
+        <tr>
+          <th>Role</th><th>Company</th><th>Source</th><th>Match</th><th>HR Contact</th><th>Status</th><th>Applied</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for app in applications %}
+        <tr class="clickable" onclick="openPopup({{ app.job.id }})">
+          <td><strong>{{ app.job.title }}</strong></td>
+          <td>{{ app.job.company }}</td>
+          <td>{{ app.job.source | title }}</td>
+          <td><strong style="color:{% if app.job.match_score >= 75 %}#16a34a{% elif app.job.match_score >= 50 %}#b45309{% else %}#dc2626{% endif %}">{{ "%.0f"|format(app.job.match_score) }}%</strong></td>
+          <td>
+            {% if app.job.hr_email %}
+              <span style="color:#16a34a;">✅ Found</span>
+            {% elif app.job.hr_name %}
+              <span style="color:#b45309;">👤 Name only</span>
+            {% else %}
+              <span style="color:#9ca3af;">—</span>
+            {% endif %}
+          </td>
+          <td><span class="badge {{ app.status }}">{{ '✅ Applied' if app.status == 'applied' else '❌ Failed' if app.status == 'failed' else '⏳ Pending' }}</span></td>
+          <td>{{ app.applied_at.strftime('%b %d %H:%M') if app.applied_at else '—' }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="7" class="empty">No applications yet. Click Run Now to start!</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="overlay" id="overlay" onclick="closeOnOverlay(event)">
+  <div class="popup" id="popup">
+    <div class="popup-header">
+      <div>
+        <h2 id="popup-title">Loading...</h2>
+        <p id="popup-company"></p>
+      </div>
+      <button class="close-btn" onclick="closePopup()">✕</button>
+    </div>
+    <div class="popup-body">
+      <div class="tabs">
+        <button class="tab active" id="tab-btn-overview" onclick="switchTab('overview', this)">Overview</button>
+        <button class="tab" id="tab-btn-resume" onclick="switchTab('resume', this)">Resume</button>
+        <button class="tab" id="tab-btn-description" onclick="switchTab('description', this)">Job Description</button>
+        <button class="tab" id="tab-btn-followup" onclick="switchTab('followup', this)">Follow Up Email</button>
+      </div>
+
+      <div class="tab-content active" id="tab-overview">
+        <div class="score-row">
+          <div class="score-number" id="score-number">—</div>
+          <div class="score-bar-bg"><div class="score-bar-fill" id="score-bar"></div></div>
+        </div>
+        <div class="score-reason" id="score-reason"></div>
+        <div class="info-grid">
+          <div class="info-box"><div class="info-label">Status</div><div class="info-value" id="info-status">—</div></div>
+          <div class="info-box"><div class="info-label">Source</div><div class="info-value" id="info-source">—</div></div>
+          <div class="info-box"><div class="info-label">Location</div><div class="info-value" id="info-location">—</div></div>
+          <div class="info-box"><div class="info-label">Applied At</div><div class="info-value" id="info-applied">—</div></div>
+        </div>
+        <div class="hr-box">
+          <h3>👤 HR Contact Information</h3>
+          <div id="hr-content"></div>
+        </div>
+        <a id="job-link" href="#" target="_blank" style="font-size:13px;color:#1e40af;">View Original Job Posting ↗</a>
+      </div>
+
+      <div class="tab-content" id="tab-resume">
+        <div id="resume-preview" class="resume-preview">
+          <div class="resume-loading">Click the Resume tab to load preview</div>
+        </div>
+        <a id="download-btn" href="#" class="download-btn">⬇ Download Resume (.docx)</a>
+      </div>
+
+      <div class="tab-content" id="tab-description">
+        <div class="description-box" id="job-description">Loading...</div>
+      </div>
+
+      <div class="tab-content" id="tab-followup">
+        <div id="followup-content"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+let currentJobId = null;
+
+async function openPopup(jobId) {
+  currentJobId = jobId;
+  document.getElementById('overlay').classList.add('show');
+  document.getElementById('popup-title').textContent = 'Loading...';
+  document.getElementById('popup-company').textContent = '';
+  switchTab('overview', document.getElementById('tab-btn-overview'));
+  try {
+    const res = await fetch('/api/job/' + jobId);
+    const job = await res.json();
+    document.getElementById('popup-title').textContent = job.title;
+    document.getElementById('popup-company').textContent = job.company + ' · ' + job.location;
+    const score = job.match_score || 0;
+    const scoreColor = score >= 75 ? '#16a34a' : score >= 50 ? '#b45309' : '#dc2626';
+    document.getElementById('score-number').textContent = Math.round(score) + '%';
+    document.getElementById('score-number').style.color = scoreColor;
+    document.getElementById('score-bar').style.width = score + '%';
+    document.getElementById('score-bar').style.background = scoreColor;
+    document.getElementById('score-reason').textContent = job.match_reason || '';
+    document.getElementById('info-status').textContent = job.status || '—';
+    document.getElementById('info-source').textContent = job.source || '—';
+    document.getElementById('info-location').textContent = job.location || '—';
+    document.getElementById('info-applied').textContent = job.applied_at ? new Date(job.applied_at).toLocaleString() : '—';
+    const hrDiv = document.getElementById('hr-content');
+    if (job.hr_name || job.hr_email) {
+      let html = '';
+      if (job.hr_name) html += '<div class="hr-row">👤 <span><strong>' + job.hr_name + '</strong>' + (job.hr_title ? ' — ' + job.hr_title : '') + '</span></div>';
+      if (job.hr_email) html += '<div class="hr-row">📧 <a href="mailto:' + job.hr_email + '">' + job.hr_email + '</a></div>';
+      hrDiv.innerHTML = html;
+    } else {
+      hrDiv.innerHTML = '<div class="no-hr">No HR contact information found on this job page.</div>';
+    }
+    document.getElementById('job-link').href = job.url || '#';
+    document.getElementById('job-description').textContent = job.description || 'No description available.';
+    const followupDiv = document.getElementById('followup-content');
+    if (job.followup_sent && job.followup_email) {
+      followupDiv.innerHTML = '<div class="followup-box"><h3>✅ Follow Up Email Sent to ' + (job.hr_email || 'HR') + '</h3><div class="followup-text">' + job.followup_email + '</div></div>';
+    } else if (!job.hr_email) {
+      followupDiv.innerHTML = '<div class="followup-box" style="background:#fef9c3;border-color:#fde68a;"><h3 style="color:#b45309;">⚠️ No HR Email Found</h3><p style="font-size:13px;color:#374151;">The agent could not find an HR email on this job page so no follow up was sent.</p></div>';
+    } else {
+      followupDiv.innerHTML = '<div class="followup-box" style="background:#fff7ed;border-color:#fed7aa;"><h3 style="color:#b45309;">Follow Up Not Sent</h3><p style="font-size:13px;">Follow up email was not sent for this application.</p></div>';
+    }
+    document.getElementById('download-btn').href = '/api/download-resume/' + jobId;
+  } catch(e) {
+    document.getElementById('popup-title').textContent = 'Error loading details';
+  }
+}
+
+function switchTab(name, btn) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  if (btn) btn.classList.add('active');
+  if (name === 'resume' && currentJobId) {
+    loadResumePreview(currentJobId);
+  }
+}
+
+async function loadResumePreview(jobId) {
+  const container = document.getElementById('resume-preview');
+  container.innerHTML = '<div class="resume-loading">Loading resume preview...</div>';
+  try {
+    const res = await fetch('/api/resume-text/' + jobId);
+    const data = await res.json();
+    if (data.error) {
+      container.innerHTML = '<div class="resume-loading">No resume found for this application.</div>';
+      return;
+    }
+    let html = '';
+    data.paragraphs.forEach((para, i) => {
+      if (i === 0) {
+        html += '<div class="resume-name">' + para.text + '</div>';
+      } else if (i === 1) {
+        html += '<div class="resume-contact">' + para.text + '</div>';
+      } else if (para.bold && para.text === para.text.toUpperCase() && para.text.length < 40) {
+        html += '<div class="resume-section-title">' + para.text + '</div>';
+      } else {
+        html += '<div class="resume-line' + (para.bold ? ' bold' : '') + '">' + para.text + '</div>';
+      }
+    });
+    container.innerHTML = html || '<div class="resume-loading">Resume appears empty.</div>';
+  } catch(e) {
+    container.innerHTML = '<div class="resume-loading">Could not load resume preview.</div>';
+  }
+}
+
+function closePopup() {
+  document.getElementById('overlay').classList.remove('show');
+  currentJobId = null;
+}
+
+function closeOnOverlay(event) {
+  if (event.target === document.getElementById('overlay')) closePopup();
+}
+
+async function runNow(btn) {
+  btn.textContent = '⏳ Running...';
+  btn.disabled = true;
+  try {
+    const res = await fetch('/api/run-now', { method: 'POST' });
+    const data = await res.json();
+    if (data.success) {
+      showToast('✅ Done! Applied to ' + data.result.jobs_applied + ' jobs');
+      setTimeout(() => location.reload(), 2500);
+    } else {
+      showToast('❌ Error: ' + (data.error || 'Something went wrong'));
+    }
+  } catch(e) {
+    showToast('❌ Network error');
+  }
+  btn.textContent = '▶ Run Now';
+  btn.disabled = false;
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 4000);
+}
+</script>
+</body>
+</html>
