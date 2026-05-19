@@ -18,6 +18,7 @@
     .field { display: flex; flex-direction: column; margin-bottom: 14px; }
     button { width: 100%; padding: 13px; background: #1e40af; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 20px; }
     button:hover { background: #1d4ed8; }
+    .hint { font-size: 11px; color: #9ca3af; margin-top: 4px; }
   </style>
 </head>
 <body>
@@ -28,41 +29,84 @@
   </div>
   <div class="body">
     <form method="POST" enctype="multipart/form-data">
+
       <div class="section">Personal Information</div>
       <div class="grid">
-        <div class="field"><label>Full Name *</label><input name="full_name" required placeholder="Alex Johnson"></div>
-        <div class="field"><label>Age *</label><input name="age" type="number" required placeholder="24"></div>
-        <div class="field"><label>Email *</label><input name="email" type="email" required placeholder="alex@email.com"></div>
-        <div class="field"><label>Phone *</label><input name="phone" required placeholder="+1 555 123 4567"></div>
+        <div class="field">
+          <label>Full Name *</label>
+          <input name="full_name" required placeholder="Alex Johnson">
+        </div>
+        <div class="field">
+          <label>Age *</label>
+          <input name="age" type="number" required placeholder="24">
+        </div>
+        <div class="field">
+          <label>Email *</label>
+          <input name="email" type="email" required placeholder="alex@email.com">
+        </div>
+        <div class="field">
+          <label>Phone *</label>
+          <input name="phone" required placeholder="+1 555 123 4567">
+        </div>
       </div>
-      <div class="field"><label>Location</label><input name="location" value="USA"></div>
+      <div class="field">
+        <label>Location</label>
+        <input name="location" value="USA">
+      </div>
+
       <div class="section">Online Presence</div>
       <div class="grid">
-        <div class="field"><label>LinkedIn URL</label><input name="linkedin_url" placeholder="https://linkedin.com/in/you"></div>
-        <div class="field"><label>GitHub URL</label><input name="github_url" placeholder="https://github.com/you"></div>
+        <div class="field">
+          <label>LinkedIn URL</label>
+          <input name="linkedin_url" placeholder="https://linkedin.com/in/you">
+        </div>
+        <div class="field">
+          <label>GitHub URL</label>
+          <input name="github_url" placeholder="https://github.com/you">
+        </div>
       </div>
-      <div class="field"><label>Portfolio / Website</label><input name="portfolio_url" placeholder="https://yoursite.com"></div>
+      <div class="field">
+        <label>Portfolio / Website</label>
+        <input name="portfolio_url" placeholder="https://yoursite.com">
+      </div>
+
       <div class="section">Job Preferences</div>
-      <div class="field"><label>Target Roles (comma separated)</label><input name="target_roles" value="AI/ML Engineer,AI Product Manager,AI Data Analyst,AI Analyst"></div>
+      <div class="field">
+        <label>Target Roles (comma separated)</label>
+        <input name="target_roles" value="AI/ML Engineer,AI Product Manager,AI Data Analyst,AI Analyst">
+      </div>
       <div class="grid">
-        <div class="field"><label>Work Mode</label>
+        <div class="field">
+          <label>Work Mode</label>
           <select name="preferred_work_mode">
             <option value="Remote" selected>Remote Only</option>
             <option value="Hybrid">Hybrid</option>
             <option value="Any">Any</option>
           </select>
         </div>
-        <div class="field"><label>Experience Level</label>
+        <div class="field">
+          <label>Experience Level</label>
           <select name="experience_level">
             <option value="Entry Level" selected>Entry Level (0-2 yrs)</option>
             <option value="Mid Level">Mid Level (3-5 yrs)</option>
           </select>
         </div>
       </div>
+
       <div class="section">Notification Email</div>
-      <div class="field"><label>Where to send job reports</label><input name="notify_email" placeholder="Same as email above"></div>
-      <div class="section">Resume (optional for now)</div>
-      <div class="field"><label>Upload your resume (PDF or DOCX)</label><input type="file" name="resume" accept=".pdf,.docx"></div>
+      <div class="field">
+        <label>Where to send job reports</label>
+        <input name="notify_email" placeholder="Same as email above">
+        <span class="hint">Leave blank to use your email above</span>
+      </div>
+
+      <div class="section">Resume</div>
+      <div class="field">
+        <label>Upload your resume (DOCX preferred, PDF also works)</label>
+        <input type="file" name="resume" accept=".pdf,.docx">
+        <span class="hint">Upload your actual resume. The agent will use it as the base and only add hidden ATS text. Your resume content will not be changed.</span>
+      </div>
+
       <button type="submit">🚀 Launch My Job Agent</button>
     </form>
   </div>

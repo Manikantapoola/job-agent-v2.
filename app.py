@@ -54,23 +54,39 @@ def onboarding():
             os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
             resume_path = os.path.join(app.config["UPLOAD_FOLDER"], resume_file.filename)
             resume_file.save(resume_path)
-        user = User(
-            full_name=data["full_name"],
-            email=data["email"],
-            phone=data["phone"],
-            age=int(data.get("age", 0)),
-            location=data.get("location", "USA"),
-            linkedin_url=data.get("linkedin_url", ""),
-            github_url=data.get("github_url", ""),
-            portfolio_url=data.get("portfolio_url", ""),
-            target_roles=data.get("target_roles", "AI/ML Engineer,AI Product Manager,AI Data Analyst,AI Analyst"),
-            preferred_work_mode=data.get("preferred_work_mode", "Remote"),
-            experience_level=data.get("experience_level", "Entry Level"),
-            resume_path=resume_path,
-            notify_email=data.get("notify_email", data["email"]),
-            is_active=True,
-        )
-        db.session.add(user)
+        existing_user = User.query.filter_by(email=data["email"]).first()
+        if existing_user:
+            existing_user.full_name = data["full_name"]
+            existing_user.phone = data["phone"]
+            existing_user.age = int(data.get("age", 0))
+            existing_user.location = data.get("location", "USA")
+            existing_user.linkedin_url = data.get("linkedin_url", "")
+            existing_user.github_url = data.get("github_url", "")
+            existing_user.portfolio_url = data.get("portfolio_url", "")
+            existing_user.target_roles = data.get("target_roles", "AI/ML Engineer,AI Product Manager,AI Data Analyst,AI Analyst")
+            existing_user.preferred_work_mode = data.get("preferred_work_mode", "Remote")
+            existing_user.experience_level = data.get("experience_level", "Entry Level")
+            existing_user.notify_email = data.get("notify_email", data["email"])
+            if resume_path:
+                existing_user.resume_path = resume_path
+        else:
+            user = User(
+                full_name=data["full_name"],
+                email=data["email"],
+                phone=data["phone"],
+                age=int(data.get("age", 0)),
+                location=data.get("location", "USA"),
+                linkedin_url=data.get("linkedin_url", ""),
+                github_url=data.get("github_url", ""),
+                portfolio_url=data.get("portfolio_url", ""),
+                target_roles=data.get("target_roles", "AI/ML Engineer,AI Product Manager,AI Data Analyst,AI Analyst"),
+                preferred_work_mode=data.get("preferred_work_mode", "Remote"),
+                experience_level=data.get("experience_level", "Entry Level"),
+                resume_path=resume_path,
+                notify_email=data.get("notify_email", data["email"]),
+                is_active=True,
+            )
+            db.session.add(user)
         db.session.commit()
         return redirect(url_for("dashboard"))
     return render_template("onboarding.html")
@@ -167,4 +183,4 @@ if __name__ == "__main__":
     with app.app_context():
         db.create_all()
     port = int(os.environ.get("PORT", 5000))
-app.run(debug=False, host="0.0.0.0", port=port, use_reloader=False)
+    app.run(debug=True, host="0.0.0.0", port=port, use_reloader=False)
