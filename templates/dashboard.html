@@ -76,7 +76,7 @@
 <div class="topbar">
   <div>
     <h1>🤖 Job Agent Dashboard</h1>
-    <p>Hello {{ user.full_name }} · Last run: {{ user.last_run_at.strftime('%b %d %H:%M') if user.last_run_at else 'Never' }}</p>
+    <p>Hello {{ user.full_name }} · Last run: {{ user.last_run_at.strftime('%b %d %H:%M') if user.last_run_at else 'Never' }} · Next run in: <span id="countdown" style="font-weight:bold;color:#93c5fd;">calculating...</span></p>
   </div>
   <button class="run-btn" onclick="runNow(this)">▶ Run Now</button>
 </div>
@@ -301,6 +301,35 @@ function showToast(msg) {
   t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 4000);
 }
+// Countdown timer to next run
+function startCountdown() {
+  const lastRunText = "{{ user.last_run_at.strftime('%Y-%m-%dT%H:%M:%S') if user.last_run_at else '' }}";
+  if (!lastRunText) {
+    document.getElementById('countdown').textContent = 'soon';
+    return;
+  }
+  const lastRun = new Date(lastRunText);
+  const nextRun = new Date(lastRun.getTime() + 3 * 60 * 60 * 1000);
+
+  function update() {
+    const now = new Date();
+    const diff = nextRun - now;
+    if (diff <= 0) {
+      document.getElementById('countdown').textContent = 'any moment now...';
+      return;
+    }
+    const hours = Math.floor(diff / (1000 * 60 * 60));
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+    document.getElementById('countdown').textContent =
+      hours + 'h ' + minutes + 'm ' + seconds + 's';
+  }
+
+  update();
+  setInterval(update, 1000);
+}
+
+startCountdown();
 </script>
 </body>
 </html>

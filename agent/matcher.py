@@ -30,7 +30,7 @@ class JobMatcher:
 
     def compute_match(self, job_description):
         if not job_description.strip():
-            return 50.0, "No description available"
+            return 45.0, "No description available — skipped"
         try:
             response = self.client.messages.create(
                 model="claude-sonnet-4-20250514",
